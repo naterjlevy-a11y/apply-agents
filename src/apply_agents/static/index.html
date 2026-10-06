@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apply Agents</title>
+<style>
+:root{--bg:#f6f6f4;--panel:#fff;--ink:#16181d;--mute:#6b6f78;--line:#e3e3df;--accent:#2f5bea;
+--ok:#1f8a4c;--warn:#b86e00;--bad:#c23b3b;--run:#2f5bea;--chip:#efefec}
+@media (prefers-color-scheme:dark){:root{--bg:#121316;--panel:#1b1c20;--ink:#ececec;--mute:#9a9ea8;--line:#2c2e34;
+--accent:#7b9cff;--ok:#4fc283;--warn:#f0a63a;--bad:#ff7070;--run:#7b9cff;--chip:#26282e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+h1{font-size:17px;margin:0;font-weight:650}
+.chip{background:var(--chip);border-radius:99px;padding:3px 10px;font-size:12px;color:var(--mute)}
+.chip.bad{color:var(--bad)}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:16px 20px;max-width:1700px;margin:auto}
+@media (max-width:1000px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.tiles{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:12px}
+@media (max-width:700px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer}
+.tile b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.tile span{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+.tile.on{outline:2px solid var(--accent)}
+textarea,input,select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;width:100%}
+textarea{min-height:64px;resize:vertical}
+button{font:inherit;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:6px 12px;border-radius:7px;cursor:pointer}
+button:hover{border-color:var(--mute)}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.go{background:var(--ok);color:#fff;border-color:var(--ok)}button.danger{color:var(--bad)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.app{cursor:pointer}tr.app:hover td{background:var(--chip)}tr.sel td{background:var(--chip)}
+.st{font-size:11px;font-weight:650;padding:2px 7px;border-radius:5px;white-space:nowrap;background:var(--chip)}
+.st.RUNNING{color:var(--run)}.st.READY_FOR_REVIEW{color:var(--ok)}.st.WAITING_FOR_INPUT{color:var(--warn)}
+.st.SUBMITTED{color:var(--ok);opacity:.7}.st.FAILED{color:var(--bad)}.st.SKIPPED,.st.QUEUED{color:var(--mute)}
+.mute{color:var(--mute)}.small{font-size:12px}
+.agents{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.agent{font-size:12px;padding:4px 9px;border-radius:7px;background:var(--chip)}.agent.busy{color:var(--run)}
+h2{font-size:15px;margin:0 0 4px}h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:16px 0 6px}
+.q{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.q.need{border-color:var(--warn)}.q.unc{border-color:var(--warn);border-style:dashed}
+.q label{display:block;font-weight:550;margin-bottom:5px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:3px 10px;font-size:13px}.kv div:nth-child(odd){color:var(--mute)}
+.shot{max-width:100%;border:1px solid var(--line);border-radius:8px;max-height:520px;object-fit:cover;object-position:top}
+.logs{font:12px/1.5 ui-monospace,Consolas,monospace;max-height:260px;overflow:auto;background:var(--bg);border-radius:8px;padding:8px;white-space:pre-wrap}
+.warn{color:var(--warn)}.bad{color:var(--bad)}
+a{color:var(--accent)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;opacity:0;transition:.2s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1}
+.answered td{font-size:12.5px;padding:4px 6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Apply Agents</h1>
+  <span class="chip" id="cfg">…</span>
+  <span class="chip">Nothing is submitted without your Approve</span>
+</header>
+<main>
+  <section>
+    <div class="tiles" id="tiles"></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><b>Add internships</b>
+        <button onclick="importReady()" title="Queue every job folder in Resumes\Applications\Ready">Import my Ready folders</button></div>
+      <p class="small mute" style="margin:4px 0 8px">One per line: a URL, or <code>Company | Role | URL</code>.</p>
+      <textarea id="addText" placeholder="https://job-boards.greenhouse.io/company/jobs/123"></textarea>
+      <div class="row" style="margin-top:8px"><button class="primary" onclick="addUrls()">Add to queue</button></div>
+      <div class="agents" id="agents"></div>
+    </div>
+    <div class="card" style="margin-top:12px;padding:6px 6px 2px">
+      <table>
+        <thead><tr><th>Company</th><th>Position</th><th>Agent</th><th>Status</th><th>Last update</th><th>Action</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <b>Live log</b>
+      <div class="logs" id="alllogs" style="margin-top:8px"></div>
+    </div>
+  </section>
+  <section><div class="card" id="detail"><p class="mute">Click an application to review it.</p></div></section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+const LABEL = {READY_FOR_REVIEW:'Ready for review', WAITING_FOR_INPUT:'Needs you', RUNNING:'Running', QUEUED:'Queued',
+  SUBMITTED:'Submitted', FAILED:'Failed', SKIPPED:'Skipped', DISCOVERED:'Discovered'};
+const CLAUDE = {running:'Writing answers now…', requested:'Queued for Claude', done:'Wrote what the facts support; the rest is yours', failed:"Couldn't run; questions are yours"};
+const TILES = [['TOTAL','Total'],['QUEUED','Queued'],['RUNNING','Running'],['READY_FOR_REVIEW','Review'],
+  ['WAITING_FOR_INPUT','Needs you'],['SUBMITTED','Submitted'],['FAILED','Failed'],['SKIPPED','Skipped']];
+let S = null, sel = null, filter = 'TOTAL', detailStamp = '';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ago = t => { if (!t) return ''; const s = (Date.now() - new Date(t)) / 1000;
+  return s < 60 ? `${s|0}s ago` : s < 3600 ? `${s/60|0}m ago` : s < 86400 ? `${s/3600|0}h ago` : new Date(t).toLocaleDateString(); };
+function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 3500); }
+async function api(path, body, method='POST'){
+  const r = await fetch(path, {method, headers:{'Content-Type':'application/json'}, body: body ? JSON.stringify(body) : undefined});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || r.statusText);
+  return j;
+}
+async function refresh(){
+  try { S = await (await fetch('/api/state')).json(); } catch { return; }
+  const c = S.config;
+  $('cfg').textContent = `${c.max_agents} agents · ${c.provider} / ${c.model}${c.fallback ? ' → ' + c.fallback : ''}${c.llm_ready ? '' : ' · NO API KEY'}`;
+  $('cfg').className = 'chip' + (c.llm_ready ? '' : ' bad');
+  $('tiles').innerHTML = TILES.map(([k,l]) => `<div class="tile ${filter===k?'on':''}" onclick="setFilter('${k}')"><b>${S.counts[k]||0}</b><span>${l}</span></div>`).join('');
+  $('agents').innerHTML = S.agents.map(a => { const app = S.applications.find(x => x.application_id === a.application_id);
+    return `<span class="agent ${app?'busy':''}">${a.agent} → ${app ? esc(app.company || '#'+app.application_id) : 'idle'}</span>`; }).join('');
+  const list = S.applications.filter(a => filter === 'TOTAL' || a.status === filter);
+  $('rows').innerHTML = list.map(a => `<tr class="app ${sel===a.application_id?'sel':''}" onclick="pick(${a.application_id})">
+    <td>${esc(a.company) || '<span class=mute>…</span>'}</td><td>${esc(a.position).slice(0,70)}</td><td class="small mute">${esc(a.agent_id)}</td>
+    <td><span class="st ${a.status}">${LABEL[a.status]||a.status}</span></td><td class="small mute">${ago(a.updated_at)}</td>
+    <td>${a.status==='READY_FOR_REVIEW'?'<b class=small>Review</b>':a.status==='WAITING_FOR_INPUT'?'<b class="small warn">Answer</b>':''}</td></tr>`).join('')
+    || `<tr><td colspan=6 class="mute">Nothing here yet.</td></tr>`;
+  renderDetail();
+  const logs = await (await fetch('/api/logs')).json();
+  const box = $('alllogs'), stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 10;
+  box.textContent = logs.map(l => `${l.ts.slice(11)} [${l.agent_id||'Manager'}] #${l.application_id} ${l.message}`).join('\n');
+  if (stick) box.scrollTop = box.scrollHeight;
+}
+function setFilter(k){ filter = k; refresh(); }
+function pick(id){ sel = id; detailStamp = ''; refresh(); }
+
+async function renderDetail(force){
+  const a = S && S.applications.find(x => x.application_id === sel);
+  if (!a) return;
+  const box = $('detail');
+  const stamp = a.updated_at + a.status;
+  const typing = box.contains(document.activeElement) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if (!force && (stamp === detailStamp || typing || box.dataset.dirty === '1')) return;
+  detailStamp = stamp; box.dataset.dirty = '';
+  const qs = a.questions || [];
+  const need = qs.filter(q => q.status === 'needs_input' || q.status === 'mismatch');
+  const unc = qs.filter(q => q.status === 'uncertain');
+  const done = qs.filter(q => q.status === 'filled' || q.status === 'uncertain');
+  const blank = qs.filter(q => q.status === 'optional_blank');
+  const ready = a.status === 'READY_FOR_REVIEW', waiting = a.status === 'WAITING_FOR_INPUT';
+  const open = ['READY_FOR_REVIEW','WAITING_FOR_INPUT','FAILED'].includes(a.status);
+  const field = (q, i) => {
+    const name = `ans${i}`;
+    if (q.options && q.options.length) return `<select name="${name}" data-label="${esc(q.label)}"><option value="">— pick —</option>${q.options.map(o => `<option>${esc(o)}</option>`).join('')}</select>`;
+    if (q.kind === 'checkbox') return `<select name="${name}" data-label="${esc(q.label)}"><option value="">— leave —</option><option value="yes">Tick it</option></select>`;
+    if (q.kind === 'file') return `<input name="${name}" data-label="${esc(q.label)}" placeholder="Full path to the PDF (or upload it yourself with EDIT)">`;
+    return q.kind === 'textarea' ? `<textarea name="${name}" data-label="${esc(q.label)}" placeholder="Your answer (saved for reuse)"></textarea>`
+                                 : `<input name="${name}" data-label="${esc(q.label)}" placeholder="Your answer (saved for reuse)">`;
+  };
+  box.innerHTML = `
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2>${esc(a.company) || 'Unknown company'}</h2><div>${esc(a.position)}</div></div>
+      <span class="st ${a.status}">${LABEL[a.status]||a.status}</span>
+    </div>
+    <div class="kv" style="margin-top:10px">
+      <div>URL</div><div><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.url).slice(0,90)}</a></div>
+      <div>Agent</div><div>${esc(a.agent_id) || '—'} ${a.live_window ? '<span class="small mute">· window open</span>' : ''}</div>
+      <div>Résumé</div><div class="small">${esc(a.resume_path) || '<span class=bad>none set</span>'} <a href="#" onclick="changeResume(${a.application_id});return false">change</a></div>
+      <div>Cover letter</div><div class="small">${esc(a.cover_letter_path) || '<span class=mute>none</span>'}</div>
+      <div>Claude</div><div class="small">${CLAUDE[a.claude_status] || (S.config.claude_auto ? 'Answers essays automatically when the agent gets stuck' : 'Auto-answer is off')}</div>
+      ${a.error ? `<div>Note</div><div class="warn">${esc(a.error)}</div>` : ''}
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="go" ${ready && a.live_window ? '' : 'disabled'} onclick="approve(${a.application_id})">APPROVE SUBMISSION</button>
+      <button ${a.live_window ? '' : 'disabled'} onclick="act(${a.application_id},'edit')">EDIT</button>
+      <button ${open ? '' : 'disabled'} onclick="sendBack(${a.application_id})">RETURN TO AGENT</button>
+      <button class="danger" ${['SUBMITTED','SKIPPED'].includes(a.status) ? 'disabled' : ''} onclick="act(${a.application_id},'skip')">SKIP</button>
+      ${waiting ? `<button onclick="act(${a.application_id},'ask-claude')" ${a.claude_status==='running'?'disabled':''}>Ask Claude</button>` : ''}
+      ${a.status==='FAILED' ? `<button onclick="act(${a.application_id},'retry')">Retry</button>` : ''}
+      ${waiting || ready ? `<button onclick="markSubmitted(${a.application_id})" title="Only if you submitted it yourself in the window">Mark submitted</button>` : ''}
+    </div>
+    ${(a.uncertainties||[]).length ? `<h3>Needs a look</h3><ul class="small" style="margin:0;padding-left:18px">${a.uncertainties.map(u => `<li class="warn">${esc(u)}</li>`).join('')}</ul>` : ''}
+    ${need.length ? `<h3>Questions needing your answer (${need.length})</h3>
+      <div oninput="this.closest('#detail').dataset.dirty='1'">${need.map((q,i) => `<div class="q need"><label>${esc(q.label)}${q.required?' <span class=bad>*</span>':''}</label>
+        ${q.note ? `<div class="small warn" style="margin-bottom:4px">${esc(q.note)}</div>` : ''}${field(q,i)}</div>`).join('')}
+      <label class="small row" style="gap:6px;margin-top:6px"><input type="checkbox" id="remember" checked style="width:auto"> Save these as approved answers for future applications</label>
+      <div class="row" style="margin-top:8px"><button class="primary" onclick="sendBack(${a.application_id})">Save answers &amp; return to agent</button></div></div>` : ''}
+    ${done.length ? `<h3>Answered (${done.length})</h3><table class="answered">${done.map(q => `<tr><td style="width:50%">${esc(q.label).slice(0,120)}</td>
+      <td class="${q.status==='uncertain'?'warn':''}">${esc(q.kind==='file' ? (q.value||'').split(/[\\/]/).pop() : q.value).slice(0,140)}</td><td class="small mute">${esc((q.source||'').replace(/:\d+$/,''))}</td></tr>`).join('')}</table>` : ''}
+    ${blank.length ? `<h3>Optional, left blank (${blank.length})</h3><div class="small mute">${blank.map(q => esc(q.label).slice(0,80)).join(' · ')}</div>` : ''}
+    ${a.screenshot ? `<h3>Browser state</h3><a href="/shots/${a.screenshot}?t=${encodeURIComponent(a.updated_at)}" target="_blank"><img class="shot" src="/shots/${a.screenshot}?t=${encodeURIComponent(a.updated_at)}"></a>` : ''}
+    <h3>Log</h3><div class="logs" id="applogs">…</div>`;
+  const logs = await (await fetch('/api/logs?app_id=' + a.application_id)).json();
+  const el = $('applogs'); if (el) { el.textContent = logs.map(l => `${l.ts.slice(11)} ${l.message}`).join('\n'); el.scrollTop = el.scrollHeight; }
+}
+async function addUrls(){ const t = $('addText').value; if (!t.trim()) return;
+  const r = await api('/api/add', {text: t}); $('addText').value = ''; toast(`Added ${r.added}${r.duplicates ? `, ${r.duplicates} already queued` : ''}`); refresh(); }
+async function importReady(){ const r = await api('/api/import-ready'); toast(`Queued ${r.added} from your Ready folders`); refresh(); }
+async function act(id, what){ try { const r = await api(`/api/${id}/${what}`); toast(r.message); } catch(e){ toast(e.message); } detailStamp=''; refresh(); }
+async function approve(id){
+  const a = S.applications.find(x => x.application_id === id);
+  if (!confirm(`Submit the application to ${a.company} (${a.position})?\n\nThe agent will click the site's final Submit button. This can't be undone.`)) return;
+  toast('Submitting…'); act(id, 'approve');
+}
+async function markSubmitted(id){ if (confirm('Mark as submitted? Only do this if you submitted it yourself in the window.')) act(id, 'mark-submitted'); }
+async function sendBack(id){
+  const answers = {};
+  document.querySelectorAll('#detail [data-label]').forEach(el => { if (el.value.trim()) answers[el.dataset.label] = el.value.trim(); });
+  const remember = $('remember') ? $('remember').checked : true;
+  const r = await api(`/api/${id}/answer`, {answers, remember}); toast(r.message); $('detail').dataset.dirty=''; detailStamp=''; refresh();
+}
+async function changeResume(id){ const p = prompt('Full path to the résumé PDF for this application:'); if (!p) return;
+  try { const r = await api(`/api/${id}/resume`, {path: p}); toast(r.message); } catch(e){ toast(e.message); } detailStamp=''; refresh(); }
+refresh(); setInterval(refresh, 2000);
+</script>
+</body>
+</html>

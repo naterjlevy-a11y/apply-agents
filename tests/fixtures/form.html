@@ -1,0 +1,19 @@
+<!doctype html><html><head><title>Job Application for Mechanical Engineering Intern at Acme Rockets</title></head>
+<body><h1>Mechanical Engineering Intern</h1>
+<form id="f" onsubmit="event.preventDefault(); document.title='SUBMITTED'; document.body.innerHTML='<p>Thank you for applying!</p>';">
+<label for="fn">First Name *</label><input id="fn" required>
+<label for="ln">Last Name *</label><input id="ln" required>
+<label for="em">Email *</label><input id="em" type="email" required>
+<label for="ph">Phone</label><input id="ph" type="tel">
+<label for="li">LinkedIn Profile</label><input id="li">
+<div><label for="cv">Resume/CV *</label><input id="cv" type="file" required></div>
+<label for="sp">Will you now or in the future require sponsorship for employment visa status? *</label>
+<select id="sp" required><option value="">Select...</option><option>Yes</option><option>No</option></select>
+<fieldset><legend>Are you legally authorized to work in the United States? *</legend>
+<label><input type="radio" name="auth" value="1" required> Yes</label><label><input type="radio" name="auth" value="0"> No</label></fieldset>
+<label for="vet">Veteran Status</label>
+<select id="vet"><option value="">Select...</option><option>I am a protected veteran</option><option>I am not a protected veteran</option><option>I don't wish to answer</option></select>
+<label for="why">Why do you want to work at Acme Rockets? *</label><textarea id="why" required></textarea>
+<label for="gpa">GPA</label><input id="gpa">
+<button type="submit">Submit Application</button>
+</form></body></html>

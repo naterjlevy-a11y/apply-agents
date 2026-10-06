@@ -1,0 +1,130 @@
+# Your application profile. The agents type ONLY what is written here or what
+# you approve in the dashboard. Empty = the agent asks you instead of guessing.
+# Copy this file to profile.yaml and fill it in.
+
+# Default resume when a job has no folder in Resumes\Applications\Ready.
+# (If it does, that folder's tailored resume + cover letter are used automatically.)
+resume_path: 'RESUME_PLACEHOLDER'
+# Uploaded wherever a form asks for a portfolio or work samples.
+portfolio_pdf_path: 'C:\path\to\Your_Portfolio.pdf'
+
+facts:
+  first_name: Alex
+  last_name: Sample
+  full_name: Alex Sample
+  preferred_name: Alex
+  legal_first_name: Alex
+  legal_middle_name: Jordan
+  legal_last_name: Sample
+  legal_full_name: Alex Jordan Sample
+  email: alex.sample@example.com
+  phone: 555-555-0100
+  linkedin: https://www.linkedin.com/in/alexsample
+  portfolio: https://example.com
+  github: https://github.com/alexsample
+  school: Example University
+  degree: Bachelor of Engineering (B.Eng.)
+  major: Mechanical Engineering
+  grad_year: 2030
+  grad_date: May 2030
+  location: Springfield, ON
+  city: Springfield
+  province: Ontario
+  country: Canada
+
+# Question rules: if a question label matches any `match` regex, use `answer`
+# (or the value of `fact`). `prefer` picks the option on a multiple-choice
+# question. First matching rule wins, so specific ones go first.
+answers:
+  # --- work authorization ---
+  - id: needs_sponsorship
+    match: ['\b(will|do|would) you (now or in the future |currently )?(require|need)\b.*sponsor', 'require.*visa sponsorship', 'need.*visa']
+    answer: 'No'
+    prefer: ['^no\b']
+  - id: work_authorized
+    match: ['\b(authori[sz]ed|eligible|permitted|able) to work\b(?!.*\b(weeks|full.time|hours|on.?site|in.person)\b)', 'work authori[sz]ation']
+    answer: 'Yes'
+    prefer: ['^yes\b']
+  - id: us_person_itar
+    match: ['u\.?s\.? person', 'itar', 'export control']
+    answer: 'Yes'
+    prefer: ['^yes\b', 'u\.?s\.? citizen']
+  - id: us_citizen
+    match: ['are you a (u\.?s\.?|united states) citizen', 'u\.?s\.? citizen(ship)? or (a )?(lawful )?permanent']
+    answer: 'Yes'
+    prefer: ['^yes\b']
+  - id: citizenship
+    match: ['^(what is your )?citizenship', 'country of citizenship', 'citizenship status']
+    answer: 'U.S. citizen'
+    prefer: ['u\.?s\.? citizen', 'united states']
+  - id: active_clearance
+    match: ['(active|current|hold|have) (an? )?(active |current )?(security )?clearance', '^active security clearance']
+    answer: 'No'
+    prefer: ['never held', '^no\b', '^none', 'not applicable']
+  - id: clearance_eligible
+    match: ['(eligible|able|willing).{0,40}clearance', 'clearance.{0,40}(eligib|obtain)']
+    answer: 'Yes'
+    prefer: ['^yes\b']
+
+  # --- education ---
+  - id: degree_level
+    match: ['^degree\b', 'degree (type|level)', 'highest degree', 'degree.{0,30}(pursuing|working towards)']
+    fact: degree
+    prefer: ["bachelor.?s degree", '^bachelor', "engineer.?s degree"]
+  # --- address: one address for every address question ---
+  - id: address_line1
+    match: ['address line ?1', 'street address', '^street']
+    answer: '123 Example Street'
+  - id: postal_code
+    match: ['^(zip|postal)\b', '^(zip|postal)( ?/ ?(zip|postal))?( code)?\W*$']
+    answer: 'A1A 1A1'
+  - id: address
+    match: ['^(?!.*(e-?mail|web|url|ip address)).*\baddress\b']
+    answer: '123 Example Street, Springfield, ON A1A 1A1, Canada'
+
+  # --- logistics (from past applications) ---
+  - id: gpa
+    match: ['\bgpa\b', 'grade point average']
+    answer: 'N/A'
+    prefer: ['^n/?a\b', 'not applicable', 'no gpa', 'none']
+  - id: relocate
+    match: ['(willing|able|open) to relocate', 'relocate (on your own|yourself|for)', 'relocation\?']
+    answer: 'Yes'
+    prefer: ['^yes\b']
+  - id: over_18
+    match: ['18 years', 'age of 18', 'at least 18']
+    answer: 'Yes'
+    prefer: ['^yes\b']
+  - id: enrolled
+    match: ['currently (enrolled|a student|pursuing)', 'enrolled in (a|an) (degree|university|college)']
+    answer: 'Yes'
+    prefer: ['^yes\b']
+  - id: start_date
+    match: ['(earliest|internship|preferred|possible) start date', 'when (can|could|are) you (start|able to (start|join))', 'available to start']
+    answer: 'May 2027'
+  - id: cad_level
+    match: ['cad (experience|proficiency|skill)', 'proficien.{0,30}(solidworks|cad)']
+    answer: 'Beginner'
+    prefer: ['^beginner', 'basic', 'novice']
+  # --- voluntary self-identification: put your own answers here ---
+  # Each one below declines; change `answer` and `prefer` to answer instead.
+  - id: gender
+    match: ['^gender', 'gender identity', '^sex$']
+    answer: 'I prefer not to say'
+    prefer: ['decline', 'prefer not', "don.t wish", 'not to (say|answer|disclose)']
+  - id: hispanic
+    match: ['hispanic', 'latin[oax]']
+    answer: 'I prefer not to say'
+    prefer: ['decline', 'prefer not', "don.t wish", 'not to (say|answer|disclose)']
+  - id: race
+    match: ['\brace\b', 'ethnicity']
+    answer: 'I prefer not to say'
+    prefer: ['decline', 'prefer not', "don.t wish", 'not to (say|answer|disclose)']
+  - id: veteran
+    match: ['veteran']
+    answer: 'I prefer not to say'
+    prefer: ['decline', 'prefer not', "don.t wish", 'not to (say|answer|disclose)']
+  - id: disability
+    match: ['disabilit']
+    answer: 'I prefer not to say'
+    prefer: ['decline', 'prefer not', "don.t wish", 'not to (say|answer|disclose)']
